@@ -18,7 +18,7 @@ public class ConsoleToGUI : MonoBehaviour
         Application.logMessageReceived -= Log;
     }
 
-    void Update() { if (Input.GetKeyDown(KeyCode.Space)) { doShow = !doShow; } }
+    void Update() { if (Input.GetKeyDown(KeyCode.P)) { doShow = !doShow; } }
 
     public void Log(string logString, string stackTrace, LogType type)
     {

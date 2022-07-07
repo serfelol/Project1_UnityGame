@@ -7,10 +7,11 @@ using UnityEngine;
 /// </summary>
 public class WeaponThrower : MonoBehaviour
 {
+    #region Fields
     [Header("Throwing Fields")]
-    [SerializeField] private float throwAngle = 45.0f;
-    [SerializeField] private float throwMaxForce = 7;
-    [SerializeField] private float axeChargeRate = 0.5f;
+    [SerializeField] private float throwAngle;
+    [SerializeField] private float throwMaxForce;
+    [SerializeField] private float axeChargeRate;
     [SerializeField] private Transform axeHandPosition;
     private float throwChargedForce;  
     private CharacterMovement2D characMovement2D;
@@ -23,9 +24,16 @@ public class WeaponThrower : MonoBehaviour
     [Header("Axe Field")]
     [SerializeField] private GameObject AxePrefab;
     GameObject launchedAxe;
+    #endregion
 
     #region Animator
     private PlayerAnimation animatorController;
+    #endregion
+
+    #region Trajectory Line
+    public GameObject trajectoryLinePrefab;
+    private GameObject trajectoryLineRef;
+    private ProjectileTrajectory projectileTrajectory;
     #endregion
 
     #region properties
@@ -60,17 +68,24 @@ public class WeaponThrower : MonoBehaviour
 
     void Update()
     {
-        // Check if there is room to throw axe.
+        // Check if there is space to throw axe.
         if(Physics2D.OverlapCircle(axeHandPosition.position, 0.05f) == null) spaceToThrowAvailable = true;
         else spaceToThrowAvailable = false;
 
         if(Input.GetKeyDown(KeyCode.Mouse1) && !mouseReleasedAfterCatchAxe){
             mouseReleasedAfterCatchAxe = true;
+
+            // create a line representing the trajectory of the axe
+            trajectoryLineRef = Instantiate(trajectoryLinePrefab, transform);
+            projectileTrajectory = trajectoryLineRef.GetComponent<ProjectileTrajectory>();
+            projectileTrajectory.InitialPosition = axeHandPosition.position;
+            projectileTrajectory.Angle = throwAngle;
         }
         // charges the attack force by holding the key until max force.
         if(Input.GetKey(KeyCode.Mouse1) && !launchedAxe && mouseReleasedAfterCatchAxe){
             if(throwChargedForce <= 1.0f){
                 throwChargedForce += (axeChargeRate * Time.deltaTime);
+                projectileTrajectory.ForceBeingApplied = throwMaxForce * throwChargedForce;
             }
         }
         // return the axe, when it's somewhere in the environment
@@ -83,8 +98,8 @@ public class WeaponThrower : MonoBehaviour
             if(spaceToThrowAvailable){
                 // converts the throw angle to a vector2.
                 Vector2 angToVector2 = Vector2.zero;
-                angToVector2.y = throwAngle / 90.0f;
-                angToVector2.x = 1 - angToVector2.y; 
+                angToVector2.x = Mathf.Cos(throwAngle * Mathf.Deg2Rad);
+                angToVector2.y = Mathf.Sin(throwAngle * Mathf.Deg2Rad);
 
                 // calculates the final force to be applied to the axe.
                 throwFinalForce = angToVector2 * throwMaxForce * throwChargedForce;
@@ -98,6 +113,9 @@ public class WeaponThrower : MonoBehaviour
 
             // charged force go back to 0 so the player can throw another axe.
             throwChargedForce = 0.1f;
+
+            // destroy the trajectory line for the axe
+            Destroy(trajectoryLineRef);
         }
 
     }
@@ -113,10 +131,16 @@ public class WeaponThrower : MonoBehaviour
         // applies the directionalForce only to the x value.
         throwFinalForce.x *= directionalForce;
         instantiatedAxeScript.ThrowAxe(throwFinalForce,directionalForce);
+        StartCoroutine("DEbugVelocity");
     }
 
     public void AnimationEventCatchAxe(){
         animatorController.ChangeAnimationState(PlayerState.Player_CatchAxe);
         mouseReleasedAfterCatchAxe = false;
+    }
+    IEnumerator DEbugVelocity()
+    {
+        yield return new WaitForEndOfFrame();
+        Debug.Log("Velocity: " + launchedAxe.GetComponent<Rigidbody2D>().velocity);
     }
 }

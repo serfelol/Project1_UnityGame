@@ -92,7 +92,8 @@ public class Axe : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D other) {
         // axe sticks to the surface.
         rb2d.simulated = false;
-        hit = true;        
+        hit = true;
+        Debug.Log(other.transform.name);
 
         // creat a intermediary parent so axe wont change in scale by the gameObject it gets stuck.
         if(parentGameObject == null){

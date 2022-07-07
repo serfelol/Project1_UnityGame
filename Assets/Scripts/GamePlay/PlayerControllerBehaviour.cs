@@ -64,8 +64,8 @@ public class PlayerControllerBehaviour : MonoBehaviour
         movementInput = Input.GetAxisRaw("Horizontal");
 
         // user jump input.
-        jumpInput = Input.GetKeyDown(KeyCode.V);
-        jumpHoldInput = Input.GetKey(KeyCode.V);
+        jumpInput = Input.GetKeyDown(KeyCode.Space);
+        jumpHoldInput = Input.GetKey(KeyCode.Space);
 
         // executes a jump.
         JumpValidator();
